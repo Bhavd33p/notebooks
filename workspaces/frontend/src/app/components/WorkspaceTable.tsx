@@ -48,6 +48,7 @@ import {
   WORKSPACE_STATE_COLORS,
 } from '~/shared/utilities/WorkspaceUtils';
 import CustomEmptyState from '~/shared/components/CustomEmptyState';
+import { getCullingWarningLevel, formatTimeUntilCull } from '~/shared/utilities/cullingUtils';
 import { WorkspacesWorkspaceListItem, V1Beta1WorkspaceState } from '~/generated/data-contracts';
 import { RedirectIconWithPopover } from '~/app/components/RedirectIconWithPopover';
 import { POLL_INTERVAL } from '~/shared/utilities/const';
@@ -472,13 +473,52 @@ const WorkspaceTable = React.forwardRef<WorkspaceTableRef, WorkspaceTableProps>(
                                 </WorkspaceKindImage>
                               )}
                               {columnKey === 'namespace' && workspace.namespace}
-                              {columnKey === 'state' && (
-                                <div className="pf-v6-u-display-inline-block">
-                                  <Label color={extractWorkspaceStateColor(workspace.state)}>
-                                    {workspace.state}
-                                  </Label>
-                                </div>
-                              )}
+                              {columnKey === 'state' &&
+                                (() => {
+                                  const cullingLevel = getCullingWarningLevel(workspace);
+                                  return (
+                                    <Flex
+                                      spaceItems={{ default: 'spaceItemsXs' }}
+                                      alignItems={{ default: 'alignItemsCenter' }}
+                                    >
+                                      <FlexItem>
+                                        <Label color={extractWorkspaceStateColor(workspace.state)}>
+                                          {workspace.state}
+                                        </Label>
+                                      </FlexItem>
+                                      {cullingLevel === 'warning' && (
+                                        <FlexItem>
+                                          <Tooltip
+                                            content={`This workspace will be auto-paused in ${formatTimeUntilCull(workspace)} due to inactivity.`}
+                                          >
+                                            <Label
+                                              color="orange"
+                                              isCompact
+                                              data-testid="culling-warning-label"
+                                            >
+                                              Pausing in {formatTimeUntilCull(workspace)}
+                                            </Label>
+                                          </Tooltip>
+                                        </FlexItem>
+                                      )}
+                                      {cullingLevel === 'critical' && (
+                                        <FlexItem>
+                                          <Tooltip
+                                            content={`This workspace will be auto-paused in ${formatTimeUntilCull(workspace)} due to inactivity.`}
+                                          >
+                                            <Label
+                                              color="red"
+                                              isCompact
+                                              data-testid="culling-critical-label"
+                                            >
+                                              Pausing in {formatTimeUntilCull(workspace)}
+                                            </Label>
+                                          </Tooltip>
+                                        </FlexItem>
+                                      )}
+                                    </Flex>
+                                  );
+                                })()}
                               {columnKey === 'gpu' && formatResourceFromWorkspace(workspace, 'gpu')}
                               {columnKey === 'idleGpu' && formatWorkspaceIdleState(workspace)}
                               {columnKey === 'lastActivity' &&

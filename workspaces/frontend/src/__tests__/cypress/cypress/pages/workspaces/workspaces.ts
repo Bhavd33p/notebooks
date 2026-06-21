@@ -71,6 +71,34 @@ class Workspaces {
       .should('have.text', lastActivity);
   }
 
+  findRefreshButton() {
+    return cy.findByTestId('workspace-refresh-now');
+  }
+
+  assertWorkspaceRowCullingWarning(index: number) {
+    return cy
+      .findByTestId(`workspace-row-${index}`)
+      .findByTestId('culling-warning-label')
+      .should('exist');
+  }
+
+  assertWorkspaceRowCullingCritical(index: number) {
+    return cy
+      .findByTestId(`workspace-row-${index}`)
+      .findByTestId('culling-critical-label')
+      .should('exist');
+  }
+
+  assertWorkspaceRowNoCullingWarning(index: number) {
+    cy.findByTestId(`workspace-row-${index}`)
+      .findByTestId('culling-warning-label')
+      .should('not.exist');
+    return cy
+      .findByTestId(`workspace-row-${index}`)
+      .findByTestId('culling-critical-label')
+      .should('not.exist');
+  }
+
   applyFilter(args: { key: string; value: string; name: string }) {
     cy.findByTestId('filter-workspaces-dropdown').click();
     cy.findByTestId(`filter-workspaces-dropdown-${args.key}`).click();
